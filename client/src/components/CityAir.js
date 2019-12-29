@@ -28,6 +28,7 @@ function pm25grade(props){
 
 class CityAir extends React.Component{
     render() {
+        console.log('test',this.props.cityname);
         return(
             <TableRow>
             <TableCell>{this.props.cityname}</TableCell>

@@ -7,24 +7,7 @@ const port = process.env.PORT || 6543;
 
 app.use(bodyParser());
 
-function recall(reg_Big, reg_Small, callback) {
-    var request = require('request');
-    var url = 'http://openapi.airkorea.or.kr/openapi/services/rest/ArpltnInforInqireSvc/getCtprvnMesureSidoLIst';
-    var queryParams = '?' + encodeURIComponent('ServiceKey') + "=FIHKuHFDKxtly4kDO2jlMQbbLpdvw7AN2tzgYoaxdCt05N29rySRtK7x%2B6YuXG3mD3H5sIx19sa%2BZaqx9453Uw%3D%3D"; /* Service Key*/
-    queryParams += '&' + encodeURIComponent('numOfRows') + '=' + encodeURIComponent('1000'); /* 한 페이지 결과 수 */
-    // queryParams += '&' + encodeURIComponent('pageNo') + '=' + encodeURIComponent('1'); /* 페이지 번호 */
-    queryParams += '&' + encodeURIComponent('sidoName') + '=' + encodeURIComponent('경기'); /* 시도 이름 (서울, 부산, 대구, 인천, 광주, 대전, 울산, 경기, 강원, 충북, 충남, 전북, 전남, 경북, 경남, 제주, 세종) */
-    queryParams += '&' + encodeURIComponent('searchCondition') + '=' + encodeURIComponent('DAILY'); /* 요청 데이터기간 (시간 : HOUR, 하루 : DAILY) */
-
-    return request({
-        url: url + queryParams,
-        method: 'GET'
-    }, function (error, response, body) {
-        callback(body);
-    });
-}
-
-var region = [{
+const region = [{
     'id': 1,
     'name': '서울'
 },
@@ -91,55 +74,55 @@ var region = [{
     'id': 17,
     'name': '세종'
 }
-]
+];
 
-var change;
+function recall(reg_id, callback) {
+    var request = require('request');
+    var url = 'http://openapi.airkorea.or.kr/openapi/services/rest/ArpltnInforInqireSvc/getCtprvnMesureSidoLIst';
+    var queryParams = '?' + encodeURIComponent('ServiceKey') + "=FIHKuHFDKxtly4kDO2jlMQbbLpdvw7AN2tzgYoaxdCt05N29rySRtK7x%2B6YuXG3mD3H5sIx19sa%2BZaqx9453Uw%3D%3D"; /* Service Key*/
+    queryParams += '&' + encodeURIComponent('numOfRows') + '=' + encodeURIComponent('1000'); /* 한 페이지 결과 수 */
+    // queryParams += '&' + encodeURIComponent('pageNo') + '=' + encodeURIComponent('1'); /* 페이지 번호 */
+    queryParams += '&' + encodeURIComponent('sidoName') + '=' + encodeURIComponent(region[reg_id].name); /* 시도 이름 (서울, 부산, 대구, 인천, 광주, 대전, 울산, 경기, 강원, 충북, 충남, 전북, 전남, 경북, 경남, 제주, 세종) */
+    queryParams += '&' + encodeURIComponent('searchCondition') + '=' + encodeURIComponent('HOUR'); /* 요청 데이터기간 (시간 : HOUR, 하루 : DAILY) */
+
+    return request({
+        url: url + queryParams,
+        method: 'GET'
+    }, function (error, response, body) {
+        callback(body);
+    });
+}
+
+var change = [{
+    'cityname': 'asdf',
+    'pm10': 53,
+    'pm25': 13
+    },{
+    'cityname': 'qwer',
+    'pm10': 81,
+    'pm25': 16
+    },{
+    'cityname': 'zxcv',
+    'pm10': 14,
+    'pm25': 18
+}];
 
 function wrap(Body){
    change = Body; 
-   console.log('2');
 }
 
-router.get('/',(ctx)=>{
-    // recall(1,1,function(body){
-    // wrap(body);
-    // console.log('1');
-    // setTimeout(() => {
-    //     ctx.body = change;
-    //     console.log('asdf',ctx.body);
-    // });
-    // }, 200);
-    ctx.body = [{
-    'cityname': 'asdf',
-    'pm10': 53,
-    'pm25': 13
-    },{
-
-    'cityname': 'qwer',
-    'pm10': 81,
-    'pm25': 16
-    },{
-    'cityname': 'zxcv',
-    'pm10': 14,
-    'pm25': 18
-    }];
+router.get('/test',(ctx)=>{
+    const { id } = ctx.query;
+    recall(id - 1, function(body){
+        ctx.body = body;
+        console.log('1');
+    });
+    ctx.body = change;
+    console.log('2');
 });
 
-router.get('/test', (ctx) => {
-  ctx.body = [{
-    'cityname': 'asdf',
-    'pm10': 53,
-    'pm25': 13
-    },{
-
-    'cityname': 'qwer',
-    'pm10': 81,
-    'pm25': 16
-    },{
-    'cityname': 'zxcv',
-    'pm10': 14,
-    'pm25': 18
-    }];
+router.get('/region', (ctx) => {
+  ctx.body = region;
 });
 
 router.get('/about/:name?', (ctx) => {
