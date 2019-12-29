@@ -25,23 +25,25 @@ function Head(props) {
   );
 }
 
-const city_air = [{
-  'cityname': 'asdf',
-  'pm10': 53,
-  'pm25': 13
-},{
-
-  'cityname': 'qwer',
-  'pm10': 81,
-  'pm25': 16
-},{
-  'cityname': 'zxcv',
-  'pm10': 14,
-  'pm25': 18
-}];
 var hi;
 
 class App extends Component {
+  state = {
+    city_air: ""
+  }
+
+  componentDidMount() {
+    this.callApi()
+      .then(res => this.setState({city_air: res}))
+      .catch(err => console.log(err));
+  }
+
+  callApi = async() => {
+    const response = await fetch('/test');
+    const body = await response.json();
+    return body;
+  }
+
   render(){   
     return (
       <div className="App">
@@ -61,7 +63,7 @@ class App extends Component {
             </TableRow>
           </TableHead>
           <TableBody>
-            {city_air.map(c => { return ( <CityAir cityname={c.cityname} pm10={c.pm10} pm25={c.pm25}/> );})}
+            {this.state.city_air ? this.state.city_air.map(c => { return ( <CityAir cityname={c.cityname} pm10={c.pm10} pm25={c.pm25}/> );}) : "no"}
           </TableBody>
         </Table>
         {

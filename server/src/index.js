@@ -109,7 +109,37 @@ router.get('/',(ctx)=>{
     //     console.log('asdf',ctx.body);
     // });
     // }, 200);
-    ctx.body = region;
+    ctx.body = [{
+    'cityname': 'asdf',
+    'pm10': 53,
+    'pm25': 13
+    },{
+
+    'cityname': 'qwer',
+    'pm10': 81,
+    'pm25': 16
+    },{
+    'cityname': 'zxcv',
+    'pm10': 14,
+    'pm25': 18
+    }];
+});
+
+router.get('/test', (ctx) => {
+  ctx.body = [{
+    'cityname': 'asdf',
+    'pm10': 53,
+    'pm25': 13
+    },{
+
+    'cityname': 'qwer',
+    'pm10': 81,
+    'pm25': 16
+    },{
+    'cityname': 'zxcv',
+    'pm10': 14,
+    'pm25': 18
+    }];
 });
 
 router.get('/about/:name?', (ctx) => {
