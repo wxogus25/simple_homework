@@ -9,20 +9,12 @@ import TableBody from '@material-ui/core/TableBody';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { withStyles } from '@material-ui/core/styles';
 
+
 const styles = theme => ({
   progress: {
     margin: theme.spacing.unit *2
   }
 });
-
-function Region(region){
-    return (
-        <select name='city' size ='6'>
-          <option value='' selected>선택</option>
-          <option value='test'>test</option>
-        </select>
-    );
-}
 
 function Head(props) {
   return (
@@ -33,13 +25,14 @@ function Head(props) {
   );
 }
 
-var hi;
+var temp;
 
 class App extends Component {
   state = {
     city_air: "",
     citys: "",
-    completed: 0
+    completed: 0,
+    value: ''
   }
 
   componentDidMount() {
@@ -59,7 +52,7 @@ class App extends Component {
   }
 
   callApi2 = async() => {
-    const response = await fetch("/test?id=8");
+    const response = await fetch("/test?id=0");
     const body = await response.json();
     return body;
   }
@@ -69,17 +62,36 @@ class App extends Component {
     this.setState({ completed: completed >= 100 ? 0 : completed + 1});
   }
 
+  handleChange = (event) => {
+    var cid=event.target.value;
+    console.log(cid);
+    if(cid == '0')
+      return;
+    
+    this.callApi3(cid)
+      .then(res => this.setState({city_air: res}))
+      // .then(res => this.setState({city_air: xmlToJson.parse(res)}))
+      .catch(err => console.log(err));
+  }
+
+  callApi3 = async(cid) => {
+    const response = await fetch('/test?id='+cid);
+    const body = await response.json();
+    return body;
+  }
+
   render(){   
     const { classes } = this.props;
     return (
       <div className="App">
         <header className = "App-header">
           <Head />
-          <select name='city' size ='6'>
-            <option value='' selected>선택</option>
+
+          <select name='city' value={this.state.value} size ='1' onChange={this.handleChange}>
+            <option value='0'>선택</option>
             {this.state.citys ? this.state.citys.map(c => { return ( <option value={c.id}>{c.name}</option> );}) : <p>asdf</p>}
           </select>
-          <button type="submit">선택하기</button>
+
         </header>
         <Table>
           <TableHead>
@@ -92,17 +104,16 @@ class App extends Component {
             </TableRow>
           </TableHead>
           <TableBody>
-            {this.state.city_air ? this.state.city_air.map(c => { return ( <CityAir cityname={c.cityname} pm10={c.pm10} pm25={c.pm25}/> );}) 
+            {this.state.city_air ? this.state.city_air.map(c => { return ( <CityAir cityname={c.cityName} pm10={c.pm10Value} pm25={c.pm25Value}/> );}) 
             : <TableRow>
                 <TableCell colSpan="5" align="center">
                   <CircularProgress className={classes.progress} variant="determinate" value={this.state.completed}/>
                 </TableCell>
-              </TableRow>}
+              </TableRow>
+            }
           </TableBody>
         </Table>
-        {
-          //document.getElementsByName("city").map(c => { return c;})
-        }
+        <p>출처: 한국환경공단_대기오염정보 Open API</p>
       </div>
     );
   }

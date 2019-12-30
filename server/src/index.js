@@ -1,9 +1,11 @@
 const Koa = require('koa');
+const send = require('koa-send');
 const Router = require('koa-router');
 const bodyParser = require('koa-bodyparser');
 const app = new Koa();
 const router = new Router();
 const port = process.env.PORT || 6543;
+const convert = require('xml-js');
 
 app.use(bodyParser());
 
@@ -94,50 +96,70 @@ function recall(reg_id, callback) {
 }
 
 var change = [{
-    'cityname': 'asdf',
-    'pm10': 53,
-    'pm25': 13
+    'cityName': '도시1',
+    'pm10Value': 53,
+    'pm25Value': 13
     },{
-    'cityname': 'qwer',
-    'pm10': 81,
-    'pm25': 16
+    'cityName': '도시2',
+    'pm10Value': 81,
+    'pm25Value': 16
     },{
-    'cityname': 'zxcv',
-    'pm10': 14,
-    'pm25': 18
+    'cityName': '도시3',
+    'pm10Value': 14,
+    'pm25Value': 18
 }];
 
-function wrap(Body){
-   change = Body; 
+function sync(reg_id) {
+    return new Promise(function(resolve, reject){
+        recall(reg_id, function(res){
+            resolve(res);
+        });
+    });
 }
 
-router.get('/test',(ctx)=>{
-    const { id } = ctx.query;
-    recall(id - 1, function(body){
-        ctx.body = body;
-        console.log('1');
-    });
-    ctx.body = change;
-    console.log('2');
+router.get('/test', async (res)=>{
+    const { id } = res.query;
+    if(id == 0){
+        res.body = change;
+    }else{
+        var check = await sync(id-1);
+        check = convert.xml2json(check, {compact: true, spaces:4});
+        check = JSON.parse(check);
+        res.body = check.response.body.items.item;
+        for(var i=0;i<res.body.length;i++){
+            res.body[i].cityName = res.body[i].cityName._text;
+            res.body[i].pm10Value = res.body[i].pm10Value._text;
+            res.body[i].pm25Value = res.body[i].pm25Value._text;
+        }
+        if(res.body.length == undefined){
+            res.body.cityName = res.body.cityName._text;
+            res.body.pm10Value = res.body.pm10Value._text;
+            res.body.pm25Value = res.body.pm25Value._text;
+            var tp = [res.body];
+            res.body = tp;
+        }
+    }
+    console.log(res.body);
 });
 
 router.get('/region', (ctx) => {
   ctx.body = region;
 });
 
-router.get('/about/:name?', (ctx) => {
-  const { name } = ctx.params;
-  // name의 존재 유무에 따라 다른 결과 출력
-  ctx.body = name ? `${name}의 소개` : '소개';
-});
+// router.get('/about/:name?', (ctx) => {
+//   const { name } = ctx.params;
+//   // name의 존재 유무에 따라 다른 결과 출력
+//   ctx.body = name ? `${name}의 소개` : '소개';
+// });
 
-router.get('/posts', (ctx) => {
-  const { id } = ctx.query;
-  // id의 존재 유무에 따라 다른 결과 출력
-  ctx.body = id ? `포스트 #${id}` : '포스트 아이디가 없습니다.';
-});
+// router.get('/posts', (ctx) => {
+//   const { id } = ctx.query;
+//   // id의 존재 유무에 따라 다른 결과 출력
+//   ctx.body = id ? `포스트 #${id}` : '포스트 아이디가 없습니다.';
+// });
 
-app.use(router.routes()).use(router.allowedMethods());
+app.use(router.routes());
+app.use(router.allowedMethods());
 
 app.listen(port, () => {
     console.log('Connect!');
